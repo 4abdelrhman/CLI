@@ -59,8 +59,7 @@ public class Terminal {
 
                 switch(command){
                     case "pwd":
-                        String path = terminal.pwd();
-                        System.out.println(path);
+                        System.out.println(terminal.pwd());
                         break;
                     default:
                         System.out.println(command + " is not a valid command.");
