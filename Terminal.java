@@ -79,12 +79,13 @@ public class Terminal {
             System.err.println("zip error: Nothing we can do!");
             return;
         }
-        if (args[0].equals("-r")) {
+        if (args[0].equals("-r") && args.length < 3) {
             String zipName = args[1];
             File fileToZip = new File(args[args.length - 1]);
 
             if (!fileToZip.exists()) {
                 System.err.println("zip error: " + args[args.length - 1] + " does not exist!");
+                return;
             }
             try (FileOutputStream fos = new FileOutputStream(zipName);
                  ZipOutputStream zipOut = new ZipOutputStream(fos)){
@@ -152,10 +153,10 @@ public class Terminal {
                     case "zip":
                         try{
                         terminal.zip(commandArgs);
-                        break;
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+                        break;
                     default:
                         System.out.println(command + " is not a valid command.");
                 }
