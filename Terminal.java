@@ -79,7 +79,7 @@ public class Terminal {
             System.err.println("zip error: Nothing we can do!");
             return;
         }
-        if (args[0].equals("-r") && args.length < 3) {
+        if (args[0].equals("-r") && args.length >= 3) {
             String zipName = args[1];
             File fileToZip = new File(args[args.length - 1]);
 
@@ -130,6 +130,63 @@ public class Terminal {
         }
     }
 
+    public void unzip(String[] args) throws IOException{
+        if( args.length < 1) {
+            System.err.println("unzip error: Nothing we can do!");
+            return;
+        }
+        String zipName = args[0];
+        File zipFile = new File(args[0]);
+        if ( !zipFile.exists() ) {
+            System.err.println("unzip error:" + zipName + " does not exist!");
+            return;
+        }
+
+        File dist = new File(pwd());
+        if ( args.length >= 3  && args[1].equals("-d")){
+            dist = new File(args[2]);
+            if (!dist.exists()) dist.mkdir();
+        }
+        System.out.println("Archive: " + zipFile.getName());
+
+        Scanner sc = new Scanner(System.in);
+
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
+            ZipEntry entry;
+
+            while( (entry = zis.getNextEntry()) != null ){
+                File newFile = new File(dist, entry.getName());
+                if(entry.isDirectory()){
+                    newFile.mkdir();
+                    System.out.println("Inflating: " + newFile.getPath());
+                    zis.closeEntry();
+                    continue;
+                }
+                if(newFile.exists()){
+                    System.out.print("replace " + newFile.getName() + "? [y]es/[n]o: ");
+                    String resp = sc.nextLine().trim().toLowerCase();
+                    if( !resp.equals("y") ){
+                        zis.closeEntry();
+                        continue;
+                    }else{
+                        new File(newFile.getParent()).mkdirs();
+                    }
+                }
+                try (FileOutputStream fos = new FileOutputStream(newFile)){
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ( (length = zis.read(buffer)) > 0 ) {
+                        fos.write(buffer, 0, length);
+                    }
+                }
+                System.out.println("    inflating: " + newFile.getPath());
+                zis.closeEntry();
+                continue;
+            }
+        }
+        System.out.println("Unzipped completed, extracted to " + dist.getAbsolutePath());
+    }
+
     public static void main(String[] args){
             Terminal terminal = new Terminal();
             Scanner sc = new Scanner(System.in);
@@ -153,6 +210,13 @@ public class Terminal {
                     case "zip":
                         try{
                         terminal.zip(commandArgs);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        break;
+                    case "unzip":
+                        try{
+                            terminal.unzip(commandArgs);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
