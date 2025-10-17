@@ -1,5 +1,5 @@
 import java.io.*;
-import java.util.Scanner;
+import java.util.*;
 import java.util.zip.*;
 
 class Parser {
@@ -33,8 +33,6 @@ class Parser {
 
 public class Terminal {
     Parser parser;
-
-
     public Terminal() {
         parser = new Parser();
     }
@@ -181,11 +179,35 @@ public class Terminal {
                 }
                 System.out.println("    inflating: " + newFile.getPath());
                 zis.closeEntry();
-                continue;
             }
         }
         System.out.println("Unzipped completed, extracted to " + dist.getAbsolutePath());
     }
+
+
+    public String chooseCommandAction(String command, String[] args){
+        ByteArrayOutputStream bb = new ByteArrayOutputStream();
+        PrintStream pp = new PrintStream(bb);
+        PrintStream old = System.out;
+        System.setOut(pp);
+        switch(command){
+            case "pwd":
+                System.out.println(pwd());
+                break;
+            case "zip":
+                try{ zip(args); } catch (IOException e) { throw new RuntimeException(e); }
+                break;
+            case "unzip":
+                try{ unzip(args); } catch (IOException e) { throw new RuntimeException(e); }
+                break;
+            default:
+                System.out.println(command + " is not a valid command.");
+        }
+        System.out.flush();
+        System.setOut(old);
+        return bb.toString();
+    }
+
 
     public static void main(String[] args){
             Terminal terminal = new Terminal();
@@ -193,37 +215,39 @@ public class Terminal {
 
             while(true){
                 System.out.print("> ");
-
                 String input = sc.nextLine().trim();
-                if(input.equals("exit")){
-                    System.exit(0);
+                if(input.equals("exit")) System.exit(0);
+
+                boolean append = false;
+                String outputFile = null;
+
+                if( input.contains(">>") ){
+                    String[] parts = input.split(">>", 2);
+                    input = parts[0].trim();
+                    outputFile = parts[1].trim();
+                    append = true;
+                }else if ( input.contains(">")){
+                    String[] parts = input.split(">", 2);
+                    input = parts[0].trim();
+                    outputFile = parts[1].trim();
                 }
 
                 terminal.parser.parse(input);
                 String command = terminal.parser.getCommandName();
                 String[] commandArgs = terminal.parser.getArgs();
 
-                switch(command){
-                    case "pwd":
-                        System.out.println(terminal.pwd());
-                        break;
-                    case "zip":
-                        try{
-                        terminal.zip(commandArgs);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        break;
-                    case "unzip":
-                        try{
-                            terminal.unzip(commandArgs);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        break;
-                    default:
-                        System.out.println(command + " is not a valid command.");
+                String output = terminal.chooseCommandAction(command, commandArgs);
+                if( outputFile != null ){
+                    try (FileWriter fw = new FileWriter(outputFile, append)){
+                        fw.write(output);
+                    } catch ( IOException e) {
+                        System.out.println("Error writing to file: " + outputFile);
+                    }
+                }else {
+                    System.out.print(output);
                 }
+
+
             }
         }
     }
