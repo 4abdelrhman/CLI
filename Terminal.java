@@ -229,6 +229,34 @@ public class Terminal {
         }
     }
 
+    public void wc(String[] args) {
+        if (args.length == 0) {
+            System.err.println("wc: missing file operand");
+            return;
+        }
+
+        for (String filename : args) {
+            File file = new File(filename);
+            if (!file.exists() || file.isDirectory()) {
+                System.err.println("wc: " + filename + ": No such file");
+                continue;
+            }
+
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                int lines = 0, words = 0, chars = 0;
+                String line;
+                while ((line = br.readLine()) != null) {
+                    lines++;
+                    words += line.trim().isEmpty() ? 0 : line.trim().split("\\s+").length;
+                    chars += line.length() + 1; // +1 for newline
+                }
+                System.out.println(lines + " " + words + " " + chars + " " + filename);
+            } catch (IOException e) {
+                System.err.println("wc: error reading " + filename);
+            }
+        }
+    }
+
     public String chooseCommandAction(String command, String[] args){
         ByteArrayOutputStream bb = new ByteArrayOutputStream();
         PrintStream pp = new PrintStream(bb);
@@ -246,6 +274,9 @@ public class Terminal {
                 break;
             case "cat":
                 cat(args);
+                break;
+            case "wc":
+                wc(args);
                 break;
             default:
                 System.out.println(command + " is not a valid command.");
