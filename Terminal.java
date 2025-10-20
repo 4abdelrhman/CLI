@@ -257,6 +257,14 @@ public class Terminal {
         }
     }
 
+    public void echo(String[] args) {
+        if (args.length == 0) {
+            System.out.println();
+            return;
+        }
+        System.out.println(String.join(" ", args));
+    }
+
     public String chooseCommandAction(String command, String[] args){
         ByteArrayOutputStream bb = new ByteArrayOutputStream();
         PrintStream pp = new PrintStream(bb);
@@ -277,6 +285,9 @@ public class Terminal {
                 break;
             case "wc":
                 wc(args);
+                break;
+            case "echo":
+                echo(args);
                 break;
             default:
                 System.out.println(command + " is not a valid command.");
