@@ -44,12 +44,15 @@ public class Terminal {
     private void zipHelper(File fileToZip, String fileName, ZipOutputStream zos) throws IOException {
         if (fileToZip.isHidden()) return;
 
+        //Handle Directories
         if (fileToZip.isDirectory()) {
             if (!fileName.endsWith("/")) fileName += "/";
+            //Add the directory entry to the ZIP file.
             zos.putNextEntry(new ZipEntry(fileName));
             zos.closeEntry();
             System.out.println("  adding: " + fileName);
 
+            // Recurs. files inside the directory
             File[] filesInside = fileToZip.listFiles();
             if (filesInside != null) {
                 for (File childFile : filesInside) {
@@ -59,9 +62,12 @@ public class Terminal {
             return;
         }
 
+        //Handle regular files
         try (FileInputStream fis = new FileInputStream(fileToZip)) {
+            //Create a new entry in the ZIP with the file name (user given)
             ZipEntry entry = new ZipEntry(fileName);
             zos.putNextEntry(entry);
+            // Read and add the file's bytes in the ZIP output stream
             byte[] buffer = new byte[1024];
             int length;
             while ((length = fis.read(buffer)) >= 0) {
@@ -77,6 +83,7 @@ public class Terminal {
             System.err.println("zip error: Nothing we can do!");
             return;
         }
+        //Handle the
         if (args[0].equals("-r") && args.length >= 3) {
             String zipName = args[1];
             File fileToZip = new File(args[args.length - 1]);
@@ -85,6 +92,7 @@ public class Terminal {
                 System.err.println("zip error: " + args[args.length - 1] + " does not exist!");
                 return;
             }
+            // create the zip file and add contents in it
             try (FileOutputStream fos = new FileOutputStream(zipName);
                  ZipOutputStream zipOut = new ZipOutputStream(fos)){
                     zipHelper(fileToZip, fileToZip.getName(), zipOut);
@@ -95,18 +103,22 @@ public class Terminal {
             return;
         }
 
+        //handle normal files ( not directory ) ZIP
         String zipName = args[0];
         try (FileOutputStream fos = new FileOutputStream(zipName);
              ZipOutputStream zos = new ZipOutputStream(fos)) {
 
+            //loop through the provided files
             for (int i = 1; i < args.length; i++) {
                 File fileToZip = new File(args[i]);
 
+                // skip missing files
                 if (!fileToZip.exists() || fileToZip.isDirectory()) {
                     System.out.println("Skipping: " + args[i]);
                     continue;
                 }
 
+                // add each file (the existing ones) in the ZIP
                 try (FileInputStream fis = new FileInputStream(fileToZip)) {
                     ZipEntry entry = new ZipEntry(fileToZip.getName());
                     zos.putNextEntry(entry);
@@ -135,31 +147,38 @@ public class Terminal {
         }
         String zipName = args[0];
         File zipFile = new File(args[0]);
+
+        //check if the ZIP file exists
         if ( !zipFile.exists() ) {
             System.err.println("unzip error:" + zipName + " does not exist!");
             return;
         }
 
+        // determine the directory
         File dist = new File(pwd());
         if ( args.length >= 3  && args[1].equals("-d")){
             dist = new File(args[2]);
-            if (!dist.exists()) dist.mkdir();
+            if (!dist.exists()) dist.mkdirs();
         }
         System.out.println("Archive: " + zipFile.getName());
 
         Scanner sc = new Scanner(System.in);
 
+        //open the ZIP file to read from it
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
             ZipEntry entry;
 
+            // go through every file or directory in the ZIP file
             while( (entry = zis.getNextEntry()) != null ){
                 File newFile = new File(dist, entry.getName());
+                //Handle directory entries
                 if(entry.isDirectory()){
-                    newFile.mkdir();
+                    newFile.mkdirs();
                     System.out.println("Inflating: " + newFile.getPath());
                     zis.closeEntry();
                     continue;
                 }
+                // handle if file already exists
                 if(newFile.exists()){
                     System.out.print("replace " + newFile.getName() + "? [y]es/[n]o: ");
                     String resp = sc.nextLine().trim().toLowerCase();
@@ -170,6 +189,7 @@ public class Terminal {
                         new File(newFile.getParent()).mkdirs();
                     }
                 }
+                // write file contents from the ZIP to the disk
                 try (FileOutputStream fos = new FileOutputStream(newFile)){
                     byte[] buffer = new byte[1024];
                     int length;
@@ -184,6 +204,30 @@ public class Terminal {
         System.out.println("Unzipped completed, extracted to " + dist.getAbsolutePath());
     }
 
+
+    public void cat(String[] args) {
+        if (args.length == 0) {
+            System.err.println("cat: missing file operand");
+            return;
+        }
+
+        for (String filename : args) {
+            File file = new File(filename);
+            if (!file.exists() || file.isDirectory()) {
+                System.err.println("cat: " + filename + ": No such file");
+                continue;
+            }
+
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(line);
+                }
+            } catch (IOException e) {
+                System.err.println("cat: error reading " + filename);
+            }
+        }
+    }
 
     public String chooseCommandAction(String command, String[] args){
         ByteArrayOutputStream bb = new ByteArrayOutputStream();
@@ -218,15 +262,20 @@ public class Terminal {
                 String input = sc.nextLine().trim();
                 if(input.equals("exit")) System.exit(0);
 
+                //flag to see the user want to append or not
                 boolean append = false;
+                // Name of the file to write/append in it
                 String outputFile = null;
 
+                //handle append
                 if( input.contains(">>") ){
                     String[] parts = input.split(">>", 2);
                     input = parts[0].trim();
                     outputFile = parts[1].trim();
                     append = true;
-                }else if ( input.contains(">")){
+                }
+                //handle overwrite
+                else if ( input.contains(">")){
                     String[] parts = input.split(">", 2);
                     input = parts[0].trim();
                     outputFile = parts[1].trim();
