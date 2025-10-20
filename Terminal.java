@@ -244,6 +244,9 @@ public class Terminal {
             case "unzip":
                 try{ unzip(args); } catch (IOException e) { throw new RuntimeException(e); }
                 break;
+            case "cat":
+                cat(args);
+                break;
             default:
                 System.out.println(command + " is not a valid command.");
         }
