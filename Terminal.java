@@ -304,6 +304,36 @@ public class Terminal {
         }
     }
 
+    public void cp(String[] args) {
+        if (args.length != 2) {
+            System.out.println("cp: requires 2 files (source and destination)");
+            return;
+        }
+
+        File source = new File(args[0]);
+        File dest = new File(args[1]);
+
+        if (!source.exists() || source.isDirectory()) {
+            System.out.println("cp: source file not found or is a directory");
+            return;
+        }
+
+        try (FileInputStream fis = new FileInputStream(source);
+             FileOutputStream fos = new FileOutputStream(dest)) {
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = fis.read(buffer)) > 0) {
+                fos.write(buffer, 0, length);
+            }
+
+            System.out.println("file copied from " + source.getName() + " to " + dest.getName());
+
+        } catch (IOException e) {
+            System.out.println("cp: error copying file");
+        }
+    }
+
     public String chooseCommandAction(String command, String[] args){
         ByteArrayOutputStream bb = new ByteArrayOutputStream();
         PrintStream pp = new PrintStream(bb);
@@ -333,6 +363,9 @@ public class Terminal {
                 break;
             case "rm":
                 rm(args);
+                break;
+            case "cp":
+                cp(args);
                 break;
             default:
                 System.out.println(command + " is not a valid command.");
