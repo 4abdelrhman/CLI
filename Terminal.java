@@ -265,6 +265,25 @@ public class Terminal {
         System.out.println(String.join(" ", args));
     }
 
+    public void touch(String[] args) {
+        if (args.length == 0) {
+            System.out.println("touch: missing file name");
+            return;
+        }
+        for (String file_name : args) {
+            File file = new File(file_name);
+            try {
+                if (file.createNewFile()) {
+                    System.out.println("file created: " + file_name);
+                } else {
+                    System.out.println("file already exists: " + file_name);
+                }
+            } catch (IOException e) {
+                System.out.println("touch: cannot create file '" + file_name + "'");
+            }
+        }
+    }
+
     public String chooseCommandAction(String command, String[] args){
         ByteArrayOutputStream bb = new ByteArrayOutputStream();
         PrintStream pp = new PrintStream(bb);
@@ -288,6 +307,9 @@ public class Terminal {
                 break;
             case "echo":
                 echo(args);
+                break;
+            case "touch":
+                touch(args);
                 break;
             default:
                 System.out.println(command + " is not a valid command.");
