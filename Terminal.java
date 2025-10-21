@@ -284,6 +284,26 @@ public class Terminal {
         }
     }
 
+    public void rm(String[] args) {
+        if (args.length == 0) {
+            System.out.println("rm: missing file name");
+            return;
+        }
+
+        for (String file_name : args) {
+            File file = new File(file_name);
+            if (file.exists() && file.isFile()) {
+                if (file.delete()) {
+                    System.out.println("file deleted: " + file_name);
+                } else {
+                    System.out.println("rm: failed to delete " + file_name);
+                }
+            } else {
+                System.out.println("rm: cannot remove '" + file_name + "': file not exist");
+            }
+        }
+    }
+
     public String chooseCommandAction(String command, String[] args){
         ByteArrayOutputStream bb = new ByteArrayOutputStream();
         PrintStream pp = new PrintStream(bb);
@@ -310,6 +330,9 @@ public class Terminal {
                 break;
             case "touch":
                 touch(args);
+                break;
+            case "rm":
+                rm(args);
                 break;
             default:
                 System.out.println(command + " is not a valid command.");
