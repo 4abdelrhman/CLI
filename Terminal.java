@@ -204,7 +204,6 @@ public class Terminal {
         System.out.println("Unzipped completed, extracted to " + dist.getAbsolutePath());
     }
 
-
     public void cat(String[] args) {
         if (args.length == 0) {
             System.err.println("cat: missing file operand");
@@ -311,7 +310,7 @@ public class Terminal {
         }
 
         File source = new File(args[0]);
-        File dest = new File(args[1]);
+        File dist = new File(args[1]);
 
         if (!source.exists() || source.isDirectory()) {
             System.out.println("cp: source file not found or is a directory");
@@ -319,7 +318,7 @@ public class Terminal {
         }
 
         try (FileInputStream fis = new FileInputStream(source);
-             FileOutputStream fos = new FileOutputStream(dest)) {
+             FileOutputStream fos = new FileOutputStream(dist)) {
 
             byte[] buffer = new byte[1024];
             int length;
@@ -327,10 +326,39 @@ public class Terminal {
                 fos.write(buffer, 0, length);
             }
 
-            System.out.println("file copied from " + source.getName() + " to " + dest.getName());
+            System.out.println("file copied from " + source.getName() + " to " + dist.getName());
 
         } catch (IOException e) {
             System.out.println("cp: error copying file");
+        }
+    }
+
+    public void cd(String[] args) {
+        String currentPath = System.getProperty("user.dir");
+
+        if (args == null || args.length == 0) {
+            System.setProperty("user.dir", System.getProperty("user.home"));
+            return;
+        }
+
+        if (args[0].equals("..")) {
+            File currentDir = new File(currentPath);
+            String parent = currentDir.getParent();
+            if (parent != null) {
+                System.setProperty("user.dir", parent);
+            }
+            return;
+        }
+
+        File newPath = new File(args[0]);
+        if (!newPath.isAbsolute()) {
+            newPath = new File(currentPath + File.separator + args[0]);
+        }
+
+        if (newPath.exists() && newPath.isDirectory()) {
+            System.setProperty("user.dir", newPath.getAbsolutePath());
+        } else {
+            System.out.println("Directory not found");
         }
     }
 
@@ -366,6 +394,9 @@ public class Terminal {
                 break;
             case "cp":
                 cp(args);
+                break;
+            case "cd":
+                cd(args);
                 break;
             default:
                 System.out.println(command + " is not a valid command.");
