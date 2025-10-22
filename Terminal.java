@@ -362,6 +362,18 @@ public class Terminal {
         }
     }
 
+    public void ls() {
+        File currentDir = new File(System.getProperty("user.dir"));
+        String[] files = currentDir.list();
+
+        if (files != null) {
+            Arrays.sort(files);
+            for (String file : files) {
+                System.out.println(file);
+            }
+        }
+    }
+
     public String chooseCommandAction(String command, String[] args){
         ByteArrayOutputStream bb = new ByteArrayOutputStream();
         PrintStream pp = new PrintStream(bb);
@@ -397,6 +409,9 @@ public class Terminal {
                 break;
             case "cd":
                 cd(args);
+                break;
+            case "ls":
+                ls();
                 break;
             default:
                 System.out.println(command + " is not a valid command.");
