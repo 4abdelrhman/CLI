@@ -383,9 +383,9 @@ public class Terminal {
 
         for (String fileName : args){
             try {
-            Path path = Paths.get(fileName);
-            Files.createDirectories(path);
-            System.out.println("directory created: " + path.toAbsolutePath() );
+                Path path = Paths.get(fileName);
+                Files.createDirectories(path);
+                System.out.println("directory created: " + path.toAbsolutePath() );
             } catch (FileAlreadyExistsException e){
                 System.out.println("mkdir: cannot create directory '" + fileName + "': File exists");
             } catch (IOException e) {
