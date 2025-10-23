@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 import java.util.zip.*;
 
@@ -374,6 +375,25 @@ public class Terminal {
         }
     }
 
+    public void makeDir(String[] args){
+        if ( args.length == 0){
+            System.out.println("mkdir: missing directory operand");
+            return;
+        }
+
+        for (String fileName : args){
+            try {
+            Path path = Paths.get(fileName);
+            Files.createDirectories(path);
+            System.out.println("directory created: " + path.toAbsolutePath() );
+            } catch (FileAlreadyExistsException e){
+                System.out.println("mkdir: cannot create directory '" + fileName + "': File exists");
+            } catch (IOException e) {
+                System.out.println("mkdir: cannot create directory '" + fileName + "'");
+            }
+        }
+    }
+
     public String chooseCommandAction(String command, String[] args){
         ByteArrayOutputStream bb = new ByteArrayOutputStream();
         PrintStream pp = new PrintStream(bb);
@@ -412,6 +432,9 @@ public class Terminal {
                 break;
             case "ls":
                 ls();
+                break;
+            case "mkdir":
+                makeDir(args);
                 break;
             default:
                 System.out.println(command + " is not a valid command.");
