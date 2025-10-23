@@ -485,7 +485,7 @@ public class Terminal {
                 break;
             case "mkdir":
                 makeDir(args);
-
+                break;
             case "rmdir":
                 rmdir(args);
                 break;
