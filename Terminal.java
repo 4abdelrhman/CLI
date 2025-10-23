@@ -304,9 +304,55 @@ public class Terminal {
         }
     }
 
+    private void cpHelper(File source, File dist) throws IOException {
+        if (source.isDirectory()){
+            if(!dist.exists()){
+                dist.mkdirs();
+            }
+
+            String[] files = source.list();
+            if( files != null){
+                for (String file : files) {
+                    cpHelper(new File(source, file), new File(dist, file));
+                }
+            }
+        }else{
+            try (FileInputStream f = new FileInputStream(source);
+                 FileOutputStream fo = new FileOutputStream((dist))){
+                byte[] bytes = new byte[1024];
+                int length;
+                while( (length = f.read(bytes)) > 0 ){
+                    fo.write(bytes, 0,length);
+                }
+            }
+        }
+    }
+
     public void cp(String[] args) {
-        if (args.length != 2) {
+        if (args.length < 2) {
             System.out.println("cp: requires 2 files (source and destination)");
+            return;
+        }
+
+        if( args[0].equals("-r")){
+            if(args.length < 3){
+                System.out.println("cp: missing file name");
+                return;
+            }
+            File source = new File(args[1]);
+            File dist = new File(args[2]);
+
+            if (!source.exists() ) {
+                System.out.println("cp: missing file " + args[1] + ": No such file or directory");
+                return;
+            }
+
+            try{
+                cpHelper(source, dist);
+                System.out.println("directory copied from " + source.getPath() + " to " + dist.getPath());
+            } catch (Exception e) {
+                System.out.println("cp: error copying directory");
+            }
             return;
         }
 
