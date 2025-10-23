@@ -394,6 +394,56 @@ public class Terminal {
         }
     }
 
+    public void rmdir(String[] args){
+        if (args.length == 0){
+            System.out.println("rmdir: missing operand");
+            return;
+        }
+
+        String toDelete = args[0];
+
+        if( toDelete.equals("*") ){
+            File currentDir = new File(System.getProperty("user.dir"));
+            File[] files = currentDir.listFiles(File::isDirectory);
+
+            if ( files == null || files.length == 0 ){
+                System.out.println("rmdir: no directories found");
+                return;
+            }
+
+            for ( File file : files ){
+                if( file.isDirectory() && Objects.requireNonNull(file.list()).length == 0 ){
+                    if(file.delete()){
+                        System.out.println("removed directory: " + file.getName());
+                    }else {
+                        System.out.println("rmdir: no empty directories to remove ");
+                    }
+                }
+            }
+            return;
+        }
+
+        File target = new File(toDelete);
+        if( !target.isAbsolute()){
+            target = new File(System.getProperty("user.dir") + File.separator + toDelete);
+        }
+
+        if (!target.exists() || !target.isDirectory()){
+            System.out.println("rmdir: failed to remove '" + toDelete + "not a directory");
+            return;
+        }
+
+        if (Objects.requireNonNull(target.list()).length == 0){
+            if(target.delete()){
+                System.out.println("removed directory: " + target.getName());
+            }else{
+                System.out.println("rmdir: failed to delete '" + toDelete + "'");
+            }
+        }else{
+            System.out.println("rmdir: failed to delete " + toDelete + "': directory not empty");
+        }
+    }
+
     public String chooseCommandAction(String command, String[] args){
         ByteArrayOutputStream bb = new ByteArrayOutputStream();
         PrintStream pp = new PrintStream(bb);
@@ -435,6 +485,9 @@ public class Terminal {
                 break;
             case "mkdir":
                 makeDir(args);
+
+            case "rmdir":
+                rmdir(args);
                 break;
             default:
                 System.out.println(command + " is not a valid command.");
