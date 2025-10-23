@@ -377,7 +377,7 @@ public class Terminal {
 
     public void makeDir(String[] args){
         if ( args.length == 0){
-            System.out.println("makeDir: missing file name");
+            System.out.println("mkdir: missing file name");
             return;
         }
 
